@@ -17,18 +17,9 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-}
-
 h2 {
     margin-bottom: 20px;
     text-align: center;
-}
-
-#username, #password {
-    width: 200px;
 }
 
 .input-group {
@@ -53,8 +44,30 @@ button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    width: 100%;
 }
 
 button:hover {
     background-color: #0056b3;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table th, .table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+.table th {
+    background-color: #f2f2f2;
+}
+
+.message {
+    margin-top: 20px;
+    text-align: center;
 }

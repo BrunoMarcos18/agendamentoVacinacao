@@ -1,4 +1,7 @@
 <?php
+// Inicia a sessão
+session_start(); 
+
 // Verifica se o formulário foi submetido
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Obtém os dados do formulário
@@ -20,19 +23,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Prepara a consulta SQL para verificar o login
-    $sql = "SELECT * FROM usuario WHERE login='$username' AND senha='$password'";
-    $result = $conn->query($sql);
+    $stmt = $conn->prepare("SELECT * FROM usuario WHERE login=? AND senha=?");
+    $stmt->bind_param("ss", $username, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     // Verifica se encontrou algum usuário com as credenciais fornecidas
     if ($result->num_rows > 0) {
         // Usuário autenticado com sucesso
-        echo "Login bem-sucedido!";
+        $_SESSION['username'] = $username; // Salva o nome do usuário na sessão
+        header("Location: ../frontend/tela_com_agendamento.php");
+        exit();
     } else {
         // Usuário não encontrado ou credenciais inválidas
-        echo "Usuário ou senha inválidos!";
+        echo "<script>alert('Usuário ou senha inválidos!');</script>";
+        header("Refresh: 0; url=../frontend/login.html");
     }
 
     // Fecha a conexão com o banco de dados
+    $stmt->close();
     $conn->close();
 }
 ?>
