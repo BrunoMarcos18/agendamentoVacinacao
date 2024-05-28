@@ -9,7 +9,7 @@ body {
     background-color: #f2f2f2;
 }
 
-.container {
+#containerLogin {
     width: 300px;
     padding: 20px;
     background-color: #fff;
@@ -31,7 +31,7 @@ h2 {
 }
 
 .input-group input {
-    width: 100%;
+    width: 90%;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -71,3 +71,16 @@ button:hover {
     margin-top: 20px;
     text-align: center;
 }
+#containerAgendamentos {
+    width: 25%;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+#input-group-agendamentos input{
+    width: 40%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px; 
+} 
