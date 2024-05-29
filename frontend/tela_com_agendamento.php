@@ -103,9 +103,11 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamentos - Agendamento de Vacinação</title>
     <link rel="stylesheet" href="../estilos/styles.css">
+    <link rel="icon" type="image/png" href="../imagens/LogoJanela.jpg">
 </head>
 <body>
     <div class="container" id="containerAgendamentos">
+        <img src="../imagens/vacine-se.png" alt="Logo" width="250px" class="logo" >
         <h2>Seus Agendamentos</h2>
         <?php if ($edit_agendamento): ?>
             <form action="tela_com_agendamento.php" method="POST" id="formAgendamentos">
@@ -137,16 +139,18 @@ $conn->close();
                             <td><?php echo $agendamento['data']; ?></td>
                             <td><?php echo $agendamento['hora']; ?></td>
                             <td>
-                                <form action="tela_com_agendamento.php" method="POST" style="display:inline-flex;">
-                                    <input type="hidden" name="id" value="<?php echo $agendamento['idagendamento']; ?>">
-                                    <input type="hidden" name="edit" value="1">
-                                    <button type="submit">Editar</button>
-                                </form>
-                                <form action="tela_com_agendamento.php" method="POST" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $agendamento['idagendamento']; ?>">
-                                    <input type="hidden" name="delete" value="1">
-                                    <button type="submit">Excluir</button>
-                                </form>
+                                <div class="action-buttons">
+                                    <form action="tela_com_agendamento.php" method="POST">
+                                        <input type="hidden" name="id" value="<?php echo $agendamento['idagendamento']; ?>">
+                                        <input type="hidden" name="edit" value="1">
+                                        <button type="submit">Editar</button>
+                                    </form>
+                                    <form action="tela_com_agendamento.php" method="POST">
+                                        <input type="hidden" name="id" value="<?php echo $agendamento['idagendamento']; ?>">
+                                        <input type="hidden" name="delete" value="1">
+                                        <button type="submit">Excluir</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
