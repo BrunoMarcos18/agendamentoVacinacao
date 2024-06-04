@@ -81,15 +81,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Obtém os agendamentos do usuário
+// Paginação
+// Obtém todos os agendamentos do usuário
 $stmt = $conn->prepare("SELECT * FROM agendamento WHERE usuario_cpf = ?");
 $stmt->bind_param("s", $cpf);
 $stmt->execute();
 $result = $stmt->get_result();
 $agendamentos = $result->fetch_all(MYSQLI_ASSOC);
 
-// Obtém todos os agendamentos para exibir na tabela
-$todos_agendamentos = $conn->query("SELECT usuario_cpf, data, hora FROM agendamento")->fetch_all(MYSQLI_ASSOC);
+// Fecha a conexão com o banco de dados
+$stmt->close();
+
+// Paginação para a tabela "Todos os agendamentos"
+$agendamentos_por_pagina = 3;
+$total_agendamentos = $conn->query("SELECT COUNT(*) FROM agendamento")->fetch_row()[0];
+$total_paginas = ceil($total_agendamentos / $agendamentos_por_pagina);
+
+// Verifica se o parâmetro 'page' foi fornecido na URL
+$pagina_atual = isset($_GET['page']) ? $_GET['page'] : 1;
+
+// Calcula o deslocamento para a consulta SQL
+$offset = ($pagina_atual - 1) * $agendamentos_por_pagina;
+
+// Obtém os agendamentos para a página atual
+$stmt = $conn->prepare("SELECT usuario_cpf, data, hora FROM agendamento LIMIT ?, ?");
+$stmt->bind_param("ii", $offset, $agendamentos_por_pagina);
+$stmt->execute();
+$result = $stmt->get_result();
+$todos_agendamentos = $result->fetch_all(MYSQLI_ASSOC);
 
 // Fecha a conexão com o banco de dados
 $stmt->close();
@@ -107,7 +126,7 @@ $conn->close();
 </head>
 <body>
     <div class="container" id="containerAgendamentos">
-        <img src="../imagens/vacine-se.png" alt="Logo" width="250px" class="logo" >
+        <img src="../imagens/vacine-se.png" alt="Logo" width="250px" class="logo">
         <h2>Seus Agendamentos</h2>
         <?php if ($edit_agendamento): ?>
             <form action="tela_com_agendamento.php" method="POST" id="formAgendamentos">
@@ -174,6 +193,7 @@ $conn->close();
             <?php endif; ?>
         <?php endif; ?>
         <p class="message">Não se esqueça de levar seu comprovante de vacinação ou sua carteirinha de vacinação.</p>
+        
         <h2>Todos os Agendamentos</h2>
         <table class="table">
             <tr>
@@ -189,6 +209,12 @@ $conn->close();
                 </tr>
             <?php endforeach; ?>
         </table>
+        <!-- Controles de Navegação da Paginação -->
+        <div class="pagination">
+            <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                <a href="?page=<?php echo $i; ?>" <?php if ($i == $pagina_atual) echo 'class="active"'; ?>><?php echo $i; ?></a>
+            <?php endfor; ?>
+        </div>
     </div>
 </body>
 </html>
