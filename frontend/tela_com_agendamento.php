@@ -40,12 +40,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hora = $_POST['hora'];
         $edit_id = $_POST['edit_id'];
 
-        $stmt = $conn->prepare("UPDATE agendamento SET data=?, hora=? WHERE idagendamento=? AND usuario_cpf=?");
-        $stmt->bind_param("ssis", $data, $hora, $edit_id, $cpf);
-        if ($stmt->execute()) {
-            echo "<script>alert('Agendamento atualizado com sucesso!');</script>";
+        // Verifica se já existe um agendamento para a mesma data e hora, excluindo o atual
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM agendamento WHERE data = ? AND hora = ? AND idagendamento != ?");
+        $stmt->bind_param("ssi", $data, $hora, $edit_id);
+        $stmt->execute();
+        $stmt->bind_result($count);
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($count > 0) {
+            echo "<script>alert('Já existe um agendamento para esta data e hora.');</script>";
         } else {
-            echo "<script>alert('Falha ao atualizar o agendamento.');</script>";
+            $stmt = $conn->prepare("UPDATE agendamento SET data=?, hora=? WHERE idagendamento=? AND usuario_cpf=?");
+            $stmt->bind_param("ssis", $data, $hora, $edit_id, $cpf);
+            if ($stmt->execute()) {
+                echo "<script>alert('Agendamento atualizado com sucesso!');</script>";
+            } else {
+                echo "<script>alert('Falha ao atualizar o agendamento.');</script>";
+            }
+            $stmt->close();
         }
     } elseif (isset($_POST['edit']) && isset($_POST['id'])) {
         // Prepara os dados para edição
@@ -55,17 +68,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute();
         $result = $stmt->get_result();
         $edit_agendamento = $result->fetch_assoc();
+        $stmt->close();
     } elseif (isset($_POST['data']) && isset($_POST['hora'])) {
         // Insere um novo agendamento
         $data = $_POST['data'];
         $hora = $_POST['hora'];
 
-        $stmt = $conn->prepare("INSERT INTO agendamento (data, hora, usuario_cpf) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $data, $hora, $cpf);
-        if ($stmt->execute()) {
-            echo "<script>alert('Agendamento realizado com sucesso!');</script>";
+        // Verifica se já existe um agendamento para a mesma data e hora
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM agendamento WHERE data = ? AND hora = ?");
+        $stmt->bind_param("ss", $data, $hora);
+        $stmt->execute();
+        $stmt->bind_result($count);
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($count > 0) {
+            echo "<script>alert('Já existe um agendamento para esta data e hora.');</script>";
         } else {
-            echo "<script>alert('Falha ao realizar o agendamento.');</script>";
+            $stmt = $conn->prepare("INSERT INTO agendamento (data, hora, usuario_cpf) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $data, $hora, $cpf);
+            if ($stmt->execute()) {
+                echo "<script>alert('Agendamento realizado com sucesso!');</script>";
+            } else {
+                echo "<script>alert('Falha ao realizar o agendamento.');</script>";
+            }
+            $stmt->close();
         }
     } elseif (isset($_POST['delete']) && isset($_POST['id'])) {
         // Exclui um agendamento existente
@@ -78,6 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             echo "<script>alert('Falha ao excluir o agendamento.');</script>";
         }
+        $stmt->close();
     }
 }
 
@@ -88,8 +116,6 @@ $stmt->bind_param("s", $cpf);
 $stmt->execute();
 $result = $stmt->get_result();
 $agendamentos = $result->fetch_all(MYSQLI_ASSOC);
-
-// Fecha a conexão com o banco de dados
 $stmt->close();
 
 // Paginação para a tabela "Todos os agendamentos"
@@ -109,9 +135,8 @@ $stmt->bind_param("ii", $offset, $agendamentos_por_pagina);
 $stmt->execute();
 $result = $stmt->get_result();
 $todos_agendamentos = $result->fetch_all(MYSQLI_ASSOC);
-
-// Fecha a conexão com o banco de dados
 $stmt->close();
+
 $conn->close();
 ?>
 
@@ -123,13 +148,34 @@ $conn->close();
     <title>Agendamentos - Agendamento de Vacinação</title>
     <link rel="stylesheet" href="../estilos/styles.css">
     <link rel="icon" type="image/png" href="../imagens/LogoJanela.jpg">
+    <script>
+        function validateForm() {
+            var data = document.getElementById("data").value;
+            var hora = document.getElementById("hora").value;
+
+            if (!data || !hora) {
+                alert("Por favor, preencha todos os campos.");
+                return false;
+            }
+
+            var currentDate = new Date();
+            var selectedDate = new Date(data + 'T' + hora);
+
+            if (selectedDate < currentDate) {
+                alert("A data e hora do agendamento devem ser futuras.");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
 </head>
 <body>
     <div class="container" id="containerAgendamentos">
         <img src="../imagens/vacine-se.png" alt="Logo" width="250px" class="logo">
         <h2>Seus Agendamentos</h2>
         <?php if ($edit_agendamento): ?>
-            <form action="tela_com_agendamento.php" method="POST" id="formAgendamentos">
+            <form action="tela_com_agendamento.php" method="POST" id="formAgendamentos" onsubmit="return validateForm()">
                 <div class="input-group" id="input-group-agendamentos">
                     <label for="data">Data:</label>
                     <input type="date" id="data" name="data" value="<?php echo $edit_agendamento['data']; ?>" required>
@@ -175,7 +221,7 @@ $conn->close();
                     <?php endforeach; ?>
                 </table>
             <?php else: ?>
-                <form action="tela_com_agendamento.php" method="POST">
+                <form action="tela_com_agendamento.php" method="POST" onsubmit="return validateForm()">
                     <div class="input-group">
                         <label for="data">Data:</label>
                         <input type="date" id="data" name="data" required>
