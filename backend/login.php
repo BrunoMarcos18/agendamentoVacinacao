@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         // Usuário autenticado com sucesso
         $_SESSION['username'] = $username; // Salva o nome do usuário na sessão
-        header("Location: ../frontend/tela_com_agendamento.php");
+        header("Location: ../backend/tela_com_agendamento.php");
         exit();
     } else {
         // Usuário não encontrado ou credenciais inválidas
