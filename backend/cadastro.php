@@ -31,14 +31,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Login já existe, exibe mensagem de erro
         echo "<script>alert('Erro: Este login já está em uso. Por favor, escolha outro.'); window.location.href = '../frontend/cadastro.html';</script>";
     } else {
-        // Login não existe, insere o novo usuário
-        $stmt = $conn->prepare("INSERT INTO usuario (cpf, nome_completo, senha, login) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $cpf, $nome_completo, $senha, $login);
+        // Verifica se o CPF já existe
+        $stmt = $conn->prepare("SELECT * FROM usuario WHERE cpf = ?");
+        $stmt->bind_param("s", $cpf);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if ($stmt->execute()) {
-            echo "<script>alert('Cadastro realizado com sucesso!'); window.location.href = '../frontend/login.html';</script>";
+        if ($result->num_rows > 0) {
+            // CPF já existe, exibe mensagem de erro
+            echo "<script>alert('Erro: Este CPF já está cadastrado. Por favor, verifique suas informações.'); window.location.href = '../frontend/cadastro.html';</script>";
         } else {
-            echo "<script>alert('Erro ao realizar o cadastro. Por favor, tente novamente.'); window.location.href = '../frontend/cadastro.html';</script>";
+            // CPF e login não existem, insere o novo usuário
+            $stmt = $conn->prepare("INSERT INTO usuario (cpf, nome_completo, senha, login) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $cpf, $nome_completo, $senha, $login);
+
+            if ($stmt->execute()) {
+                echo "<script>alert('Cadastro realizado com sucesso!'); window.location.href = '../frontend/login.html';</script>";
+            } else {
+                echo "<script>alert('Erro ao realizar o cadastro. Por favor, tente novamente.'); window.location.href = '../frontend/cadastro.html';</script>";
+            }
         }
     }
 
